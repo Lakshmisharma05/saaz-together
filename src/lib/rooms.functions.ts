@@ -134,7 +134,16 @@ export const updateRoomPlayback = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     const { supabase } = context;
-    const patch: Record<string, unknown> = { last_state_change: new Date().toISOString() };
+    type RoomPatch = {
+      last_state_change: string;
+      is_playing?: boolean;
+      position_seconds?: number;
+      current_video_id?: string | null;
+      current_video_title?: string | null;
+      current_video_channel?: string | null;
+      current_video_thumbnail?: string | null;
+    };
+    const patch: RoomPatch = { last_state_change: new Date().toISOString() };
     if (data.is_playing !== undefined) patch.is_playing = data.is_playing;
     if (data.position_seconds !== undefined) patch.position_seconds = data.position_seconds;
     if (data.track) {
@@ -144,7 +153,6 @@ export const updateRoomPlayback = createServerFn({ method: "POST" })
       patch.current_video_thumbnail = data.track.thumbnail ?? null;
       patch.position_seconds = 0;
       patch.is_playing = true;
-      // Log play history for the actor
       await supabase.from("play_history").insert({
         user_id: context.userId,
         room_id: data.room_id,
