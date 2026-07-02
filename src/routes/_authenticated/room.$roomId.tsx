@@ -392,6 +392,16 @@ function RoomPage() {
             </div>
           )}
 
+          {room.mode === "jam" && (
+            <QueueRail
+              roomId={room.id}
+              currentUserId={me}
+              hostId={room.host_id}
+              canControl={canControl}
+            />
+          )}
+
+
           <div className="rounded-3xl border border-white/5 bg-surface/60 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-widest text-muted-foreground">
               <Users className="size-3.5" /> Listening now ({participants.length})
