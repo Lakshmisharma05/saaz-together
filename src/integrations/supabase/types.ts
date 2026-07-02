@@ -235,6 +235,50 @@ export type Database = {
           },
         ]
       }
+      room_queue: {
+        Row: {
+          added_at: string
+          added_by: string
+          channel: string | null
+          id: string
+          position: number
+          room_id: string
+          thumbnail: string | null
+          title: string
+          video_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by: string
+          channel?: string | null
+          id?: string
+          position?: number
+          room_id: string
+          thumbnail?: string | null
+          title: string
+          video_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string
+          channel?: string | null
+          id?: string
+          position?: number
+          room_id?: string
+          thumbnail?: string | null
+          title?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_queue_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rooms: {
         Row: {
           created_at: string
@@ -249,6 +293,7 @@ export type Database = {
           is_active: boolean
           is_playing: boolean
           last_state_change: string
+          mode: string
           name: string
           position_seconds: number
         }
@@ -265,6 +310,7 @@ export type Database = {
           is_active?: boolean
           is_playing?: boolean
           last_state_change?: string
+          mode?: string
           name?: string
           position_seconds?: number
         }
@@ -281,6 +327,7 @@ export type Database = {
           is_active?: boolean
           is_playing?: boolean
           last_state_change?: string
+          mode?: string
           name?: string
           position_seconds?: number
         }
