@@ -67,20 +67,12 @@ export function VideoCall({
 
       const remoteStream = new MediaStream();
       pc.ontrack = (e) => {
-        for (const track of e.streams[0]?.getTracks() ?? [track2 as unknown as MediaStreamTrack]) {
+        const tracks = e.streams[0]?.getTracks() ?? [e.track];
+        for (const track of tracks) {
           if (!remoteStream.getTracks().find((t) => t.id === track.id)) {
             remoteStream.addTrack(track);
           }
         }
-        attachStream(remoteId, remoteStream);
-        rerender();
-      };
-      // Fallback (some browsers) — attach individual track
-      const track2: unknown = undefined;
-      pc.ontrack = (e) => {
-        e.streams[0]?.getTracks().forEach((t) => {
-          if (!remoteStream.getTracks().find((x) => x.id === t.id)) remoteStream.addTrack(t);
-        });
         attachStream(remoteId, remoteStream);
         rerender();
       };
