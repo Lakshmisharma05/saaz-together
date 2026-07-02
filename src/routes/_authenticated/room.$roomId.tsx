@@ -284,6 +284,7 @@ function RoomPage() {
                 videoId={room.current_video_id}
                 isPlaying={!!room.is_playing && !!room.is_active}
                 targetPosition={targetPosition}
+                onEnded={handleTrackEnded}
               />
             ) : (
               <div className="grid aspect-video place-items-center rounded-2xl bg-linear-to-br from-brand/20 via-surface to-surface-2 text-center">
