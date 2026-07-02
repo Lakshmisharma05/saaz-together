@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import { createRoom, joinRoomByCode } from "@/lib/rooms.functions";
 import { toast } from "sonner";
-import { Copy, Headphones, Link2, Loader2, Music, Pencil, Users, Clock } from "lucide-react";
+import { Copy, Headphones, Link2, Loader2, Music, Pencil, Users, Clock, User as UserIcon, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -22,7 +22,7 @@ function Dashboard() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<null | "listen" | "jam">(null);
   const [joinCode, setJoinCode] = useState("");
   const [editingFriend, setEditingFriend] = useState<string | null>(null);
   const [nickDraft, setNickDraft] = useState("");
@@ -82,16 +82,18 @@ function Dashboard() {
     load();
   }, []);
 
-  async function handleCreate() {
-    setCreating(true);
+  async function handleCreate(mode: "listen" | "jam") {
+    setCreating(mode);
     try {
-      const { room } = await createRoom({ data: { name: "Listening Session" } });
-      toast.success("Session started");
+      const { room } = await createRoom({
+        data: { name: mode === "jam" ? "Jam Session" : "Listening Session", mode },
+      });
+      toast.success(mode === "jam" ? "Jam started" : "Session started");
       navigate({ to: "/room/$roomId", params: { roomId: room.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create");
     } finally {
-      setCreating(false);
+      setCreating(null);
     }
   }
 
