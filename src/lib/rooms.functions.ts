@@ -12,11 +12,13 @@ const trackSchema = z.object({
 /** Create a new listening room owned by the caller and add them as participant. */
 export const createRoom = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { name?: string }) => ({ name: input?.name?.slice(0, 80) }))
+  .inputValidator((input: { name?: string; mode?: "listen" | "jam" }) => ({
+    name: input?.name?.slice(0, 80),
+    mode: input?.mode === "jam" ? "jam" : "listen",
+  }))
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Try a few times in case of collision
     let inviteCode = "";
     for (let i = 0; i < 5; i++) {
       const { data: codeRow, error: codeErr } = await supabaseAdmin.rpc("gen_invite_code");
@@ -35,7 +37,8 @@ export const createRoom = createServerFn({ method: "POST" })
       .insert({
         host_id: context.userId,
         invite_code: inviteCode,
-        name: data.name || "Listening Session",
+        name: data.name || (data.mode === "jam" ? "Jam Session" : "Listening Session"),
+        mode: data.mode,
       })
       .select()
       .single();
@@ -63,7 +66,6 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
     if (!room) throw new Error("Invite code not found");
     if (!room.is_active) throw new Error("This session has ended");
 
-    // Upsert participant
     const { data: existing } = await supabaseAdmin
       .from("room_participants")
       .select("id")
@@ -76,7 +78,6 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
         .from("room_participants")
         .insert({ room_id: room.id, user_id: context.userId });
 
-      // Fetch caller's display name for system message
       const { data: prof } = await supabaseAdmin
         .from("profiles")
         .select("display_name")
@@ -90,7 +91,6 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
       });
     }
 
-    // Auto-add friendships between this user and every other participant
     const { data: others } = await supabaseAdmin
       .from("room_participants")
       .select("user_id")
@@ -98,10 +98,7 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
       .neq("user_id", context.userId);
 
     if (others && others.length > 0) {
-      const rows: {
-        owner_id: string;
-        friend_id: string;
-      }[] = [];
+      const rows: { owner_id: string; friend_id: string }[] = [];
       for (const o of others) {
         rows.push({ owner_id: context.userId, friend_id: o.user_id });
         rows.push({ owner_id: o.user_id, friend_id: context.userId });
@@ -167,7 +164,7 @@ export const updateRoomPlayback = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** End a room (host only). Chat and history persist. */
+/** End a room (host only). */
 export const endRoom = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { room_id: string }) => ({
@@ -180,5 +177,110 @@ export const endRoom = createServerFn({ method: "POST" })
       .eq("id", data.room_id)
       .eq("host_id", context.userId);
     if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Add a track to a jam room's shared queue. */
+export const addToQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { room_id: string; track: z.infer<typeof trackSchema> }) => ({
+      room_id: z.string().uuid().parse(input.room_id),
+      track: trackSchema.parse(input.track),
+    }),
+  )
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    // Append at the end
+    const { data: last } = await supabase
+      .from("room_queue")
+      .select("position")
+      .eq("room_id", data.room_id)
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextPos = (last?.position ?? -1) + 1;
+    const { error } = await supabase.from("room_queue").insert({
+      room_id: data.room_id,
+      video_id: data.track.video_id,
+      title: data.track.title,
+      channel: data.track.channel ?? null,
+      thumbnail: data.track.thumbnail ?? null,
+      position: nextPos,
+      added_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Remove a queue item (adder or host). */
+export const removeFromQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => ({ id: z.string().uuid().parse(input.id) }))
+  .handler(async ({ context, data }) => {
+    const { error } = await context.supabase.from("room_queue").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Pop the next queue item and set it as the current track for a jam room. */
+export const playNextFromQueue = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { room_id: string }) => ({
+    room_id: z.string().uuid().parse(input.room_id),
+  }))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { data: next } = await supabase
+      .from("room_queue")
+      .select("*")
+      .eq("room_id", data.room_id)
+      .order("position", { ascending: true })
+      .order("added_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (!next) return { ok: true, empty: true };
+
+    await supabase
+      .from("rooms")
+      .update({
+        current_video_id: next.video_id,
+        current_video_title: next.title,
+        current_video_channel: next.channel,
+        current_video_thumbnail: next.thumbnail,
+        position_seconds: 0,
+        is_playing: true,
+        last_state_change: new Date().toISOString(),
+      })
+      .eq("id", data.room_id);
+
+    await supabase.from("play_history").insert({
+      user_id: context.userId,
+      room_id: data.room_id,
+      video_id: next.video_id,
+      title: next.title,
+      channel: next.channel,
+      thumbnail: next.thumbnail,
+    });
+
+    await supabase.from("room_queue").delete().eq("id", next.id);
+    return { ok: true, empty: false };
+  });
+
+/** Log a solo listen to play_history (no room). */
+export const logSoloPlay = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { track: z.infer<typeof trackSchema> }) => ({
+    track: trackSchema.parse(input.track),
+  }))
+  .handler(async ({ context, data }) => {
+    await context.supabase.from("play_history").insert({
+      user_id: context.userId,
+      room_id: null,
+      video_id: data.track.video_id,
+      title: data.track.title,
+      channel: data.track.channel ?? null,
+      thumbnail: data.track.thumbnail ?? null,
+    });
     return { ok: true };
   });
