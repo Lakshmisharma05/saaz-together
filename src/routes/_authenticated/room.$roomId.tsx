@@ -308,14 +308,26 @@ function RoomPage() {
                   {room.current_video_channel ?? " "}
                 </p>
               </div>
-              {room.current_video_id && canControl && (
-                <button
-                  onClick={handleTogglePlay}
-                  className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-white/20"
-                >
-                  {room.is_playing ? "Pause for everyone" : "Play for everyone"}
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {room.current_video_id && (
+                  <Link
+                    to="/live/$videoId"
+                    params={{ videoId: room.current_video_id }}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-live/15 px-3 py-1.5 text-xs font-semibold text-live hover:bg-live/25"
+                    title="Chat with everyone playing this track"
+                  >
+                    <Radio className="size-3.5" /> Live
+                  </Link>
+                )}
+                {room.current_video_id && canControl && (
+                  <button
+                    onClick={handleTogglePlay}
+                    className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-white/20"
+                  >
+                    {room.is_playing ? "Pause" : "Play"}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="mt-2 flex items-center gap-2 px-1 text-[10px] font-bold uppercase tracking-wider">
               {room.is_active ? (
