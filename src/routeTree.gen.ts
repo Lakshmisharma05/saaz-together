@@ -13,9 +13,11 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinCodeRouteImport } from './routes/join.$code'
+import { Route as AuthenticatedSoloRouteImport } from './routes/_authenticated/solo'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedRoomRoomIdRouteImport } from './routes/_authenticated/room.$roomId'
+import { Route as AuthenticatedLiveVideoIdRouteImport } from './routes/_authenticated/live.$videoId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -36,6 +38,11 @@ const JoinCodeRoute = JoinCodeRouteImport.update({
   path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSoloRoute = AuthenticatedSoloRouteImport.update({
+  id: '/solo',
+  path: '/solo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -51,13 +58,21 @@ const AuthenticatedRoomRoomIdRoute = AuthenticatedRoomRoomIdRouteImport.update({
   path: '/room/$roomId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLiveVideoIdRoute =
+  AuthenticatedLiveVideoIdRouteImport.update({
+    id: '/live/$videoId',
+    path: '/live/$videoId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/solo': typeof AuthenticatedSoloRoute
   '/join/$code': typeof JoinCodeRoute
+  '/live/$videoId': typeof AuthenticatedLiveVideoIdRoute
   '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
 }
 export interface FileRoutesByTo {
@@ -65,7 +80,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/library': typeof AuthenticatedLibraryRoute
+  '/solo': typeof AuthenticatedSoloRoute
   '/join/$code': typeof JoinCodeRoute
+  '/live/$videoId': typeof AuthenticatedLiveVideoIdRoute
   '/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
 }
 export interface FileRoutesById {
@@ -75,7 +92,9 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRoute
+  '/_authenticated/solo': typeof AuthenticatedSoloRoute
   '/join/$code': typeof JoinCodeRoute
+  '/_authenticated/live/$videoId': typeof AuthenticatedLiveVideoIdRoute
   '/_authenticated/room/$roomId': typeof AuthenticatedRoomRoomIdRoute
 }
 export interface FileRouteTypes {
@@ -85,10 +104,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/library'
+    | '/solo'
     | '/join/$code'
+    | '/live/$videoId'
     | '/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app' | '/library' | '/join/$code' | '/room/$roomId'
+  to:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/library'
+    | '/solo'
+    | '/join/$code'
+    | '/live/$videoId'
+    | '/room/$roomId'
   id:
     | '__root__'
     | '/'
@@ -96,7 +125,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/app'
     | '/_authenticated/library'
+    | '/_authenticated/solo'
     | '/join/$code'
+    | '/_authenticated/live/$videoId'
     | '/_authenticated/room/$roomId'
   fileRoutesById: FileRoutesById
 }
@@ -137,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/solo': {
+      id: '/_authenticated/solo'
+      path: '/solo'
+      fullPath: '/solo'
+      preLoaderRoute: typeof AuthenticatedSoloRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/library': {
       id: '/_authenticated/library'
       path: '/library'
@@ -158,18 +196,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRoomRoomIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/live/$videoId': {
+      id: '/_authenticated/live/$videoId'
+      path: '/live/$videoId'
+      fullPath: '/live/$videoId'
+      preLoaderRoute: typeof AuthenticatedLiveVideoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+  AuthenticatedSoloRoute: typeof AuthenticatedSoloRoute
+  AuthenticatedLiveVideoIdRoute: typeof AuthenticatedLiveVideoIdRoute
   AuthenticatedRoomRoomIdRoute: typeof AuthenticatedRoomRoomIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+  AuthenticatedSoloRoute: AuthenticatedSoloRoute,
+  AuthenticatedLiveVideoIdRoute: AuthenticatedLiveVideoIdRoute,
   AuthenticatedRoomRoomIdRoute: AuthenticatedRoomRoomIdRoute,
 }
 
@@ -185,13 +234,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
-import { endRoom, updateRoomPlayback } from "@/lib/rooms.functions";
+import { QueueRail } from "@/components/QueueRail";
+import { VideoCall } from "@/components/VideoCall";
+import { endRoom, playNextFromQueue, updateRoomPlayback } from "@/lib/rooms.functions";
 import { searchYouTube, type YtSearchResult } from "@/lib/youtube.functions";
 import { toast } from "sonner";
 import {
@@ -13,9 +15,11 @@ import {
   MessageCircle,
   Music,
   PowerOff,
+  Radio,
   Search,
   Send,
   Users,
+  Video,
 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
@@ -42,6 +46,7 @@ function RoomPage() {
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<YtSearchResult[]>([]);
+  const [videoCallOn, setVideoCallOn] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   // Load current user
@@ -162,6 +167,15 @@ function RoomPage() {
     [room],
   );
 
+  const handleTrackEnded = useCallback(async () => {
+    if (!room) return;
+    if (room.mode === "jam" && room.is_active) {
+      try {
+        await playNextFromQueue({ data: { room_id: room.id } });
+      } catch {}
+    }
+  }, [room]);
+
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
@@ -235,6 +249,24 @@ function RoomPage() {
                   <Copy className="size-3" />
                 </button>
               </div>
+              {room.mode === "jam" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-hot/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-hot">
+                  Jam
+                </span>
+              )}
+              {room.is_active && (
+                <button
+                  onClick={() => setVideoCallOn((v) => !v)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                    videoCallOn
+                      ? "bg-live/20 text-live hover:bg-live/30"
+                      : "border border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <Video className="size-3.5" />
+                  {videoCallOn ? "Stop video" : "Video call"}
+                </button>
+              )}
               {isHost && room.is_active && (
                 <button
                   onClick={handleEndSession}
@@ -247,12 +279,21 @@ function RoomPage() {
             </div>
           </div>
 
+          {videoCallOn && me && room.is_active && (
+            <VideoCall
+              roomId={room.id}
+              userId={me}
+              onLeave={() => setVideoCallOn(false)}
+            />
+          )}
+
           <div className="rounded-3xl border border-white/5 bg-black/60 p-3 shadow-panel">
             {room.current_video_id ? (
               <YouTubePlayer
                 videoId={room.current_video_id}
                 isPlaying={!!room.is_playing && !!room.is_active}
                 targetPosition={targetPosition}
+                onEnded={handleTrackEnded}
               />
             ) : (
               <div className="grid aspect-video place-items-center rounded-2xl bg-linear-to-br from-brand/20 via-surface to-surface-2 text-center">
@@ -276,14 +317,26 @@ function RoomPage() {
                   {room.current_video_channel ?? " "}
                 </p>
               </div>
-              {room.current_video_id && canControl && (
-                <button
-                  onClick={handleTogglePlay}
-                  className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-white/20"
-                >
-                  {room.is_playing ? "Pause for everyone" : "Play for everyone"}
-                </button>
-              )}
+              <div className="flex items-center gap-2">
+                {room.current_video_id && (
+                  <Link
+                    to="/live/$videoId"
+                    params={{ videoId: room.current_video_id }}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-live/15 px-3 py-1.5 text-xs font-semibold text-live hover:bg-live/25"
+                    title="Chat with everyone playing this track"
+                  >
+                    <Radio className="size-3.5" /> Live
+                  </Link>
+                )}
+                {room.current_video_id && canControl && (
+                  <button
+                    onClick={handleTogglePlay}
+                    className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-white/20"
+                  >
+                    {room.is_playing ? "Pause" : "Play"}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="mt-2 flex items-center gap-2 px-1 text-[10px] font-bold uppercase tracking-wider">
               {room.is_active ? (
@@ -338,6 +391,16 @@ function RoomPage() {
               )}
             </div>
           )}
+
+          {room.mode === "jam" && (
+            <QueueRail
+              roomId={room.id}
+              currentUserId={me}
+              hostId={room.host_id}
+              canControl={canControl}
+            />
+          )}
+
 
           <div className="rounded-3xl border border-white/5 bg-surface/60 p-4">
             <h3 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-widest text-muted-foreground">

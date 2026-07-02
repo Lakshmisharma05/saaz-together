@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell, EmptyState } from "@/components/AppShell";
 import { createRoom, joinRoomByCode } from "@/lib/rooms.functions";
 import { toast } from "sonner";
-import { Copy, Headphones, Link2, Loader2, Music, Pencil, Users, Clock } from "lucide-react";
+import { Copy, Headphones, Link2, Loader2, Music, Pencil, Users, Clock, User as UserIcon, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -22,7 +22,7 @@ function Dashboard() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<null | "listen" | "jam">(null);
   const [joinCode, setJoinCode] = useState("");
   const [editingFriend, setEditingFriend] = useState<string | null>(null);
   const [nickDraft, setNickDraft] = useState("");
@@ -82,16 +82,18 @@ function Dashboard() {
     load();
   }, []);
 
-  async function handleCreate() {
-    setCreating(true);
+  async function handleCreate(mode: "listen" | "jam") {
+    setCreating(mode);
     try {
-      const { room } = await createRoom({ data: { name: "Listening Session" } });
-      toast.success("Session started");
+      const { room } = await createRoom({
+        data: { name: mode === "jam" ? "Jam Session" : "Listening Session", mode },
+      });
+      toast.success(mode === "jam" ? "Jam started" : "Session started");
       navigate({ to: "/room/$roomId", params: { roomId: room.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create");
     } finally {
-      setCreating(false);
+      setCreating(null);
     }
   }
 
@@ -116,42 +118,77 @@ function Dashboard() {
     <AppShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
         {/* Hero action bar */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-3xl border border-white/10 bg-linear-to-br from-brand/25 via-brand/10 to-transparent p-6">
             <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-brand-glow">
-              Start listening
+              Listen together
             </div>
-            <h2 className="font-display text-2xl font-bold">Kick off a new session</h2>
+            <h2 className="font-display text-xl font-bold">Sync with a friend</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Get an invite link you can send to a friend. They join, you sync.
+              You pick the tracks — everyone hears the same beat.
             </p>
             <button
-              onClick={handleCreate}
-              disabled={creating}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-brand-glow transition-transform hover:scale-105 disabled:opacity-60"
+              onClick={() => handleCreate("listen")}
+              disabled={creating !== null}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-brand-glow transition-transform hover:scale-105 disabled:opacity-60"
             >
-              {creating ? <Loader2 className="size-4 animate-spin" /> : <Headphones className="size-4" />}
+              {creating === "listen" ? <Loader2 className="size-4 animate-spin" /> : <Headphones className="size-4" />}
               New session
+            </button>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-linear-to-br from-hot/25 via-hot/10 to-transparent p-6">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-hot">
+              Jam session
+            </div>
+            <h2 className="font-display text-xl font-bold">Build a queue together</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Everyone adds songs to a shared up-next list. Take turns as DJ.
+            </p>
+            <button
+              onClick={() => handleCreate("jam")}
+              disabled={creating !== null}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-hot px-4 py-2.5 text-sm font-semibold text-white shadow-panel transition-transform hover:scale-105 disabled:opacity-60"
+            >
+              {creating === "jam" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              Start a jam
             </button>
           </div>
           <div className="rounded-3xl border border-white/10 bg-surface/60 p-6">
             <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Join a friend
+              Just me
             </div>
-            <h2 className="font-display text-2xl font-bold">Have an invite code?</h2>
-            <form onSubmit={handleJoin} className="mt-4 flex gap-2">
+            <h2 className="font-display text-xl font-bold">Listen solo</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Play anything, save it to history, hop into a live song room anytime.
+            </p>
+            <Link
+              to="/solo"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-white/20"
+            >
+              <UserIcon className="size-4" />
+              Listen solo
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-3xl border border-white/10 bg-surface/60 p-4">
+          <form onSubmit={handleJoin} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Got an invite code?
+            </span>
+            <div className="flex flex-1 gap-2">
               <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="e.g. K7QRZ2AB"
                 maxLength={12}
-                className="flex-1 rounded-full border border-white/10 bg-background/60 px-4 py-2.5 font-mono text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground focus:border-brand"
+                className="flex-1 rounded-full border border-white/10 bg-background/60 px-4 py-2 font-mono text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground focus:border-brand"
               />
-              <button className="rounded-full bg-white/10 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-white/20">
+              <button className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20">
                 Join
               </button>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
 
         {/* Sessions */}
