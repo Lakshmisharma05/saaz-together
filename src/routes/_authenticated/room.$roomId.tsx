@@ -46,6 +46,7 @@ function RoomPage() {
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<YtSearchResult[]>([]);
+  const [videoCallOn, setVideoCallOn] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   // Load current user
