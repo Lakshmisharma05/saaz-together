@@ -240,6 +240,24 @@ function RoomPage() {
                   <Copy className="size-3" />
                 </button>
               </div>
+              {room.mode === "jam" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-hot/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-hot">
+                  Jam
+                </span>
+              )}
+              {room.is_active && (
+                <button
+                  onClick={() => setVideoCallOn((v) => !v)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                    videoCallOn
+                      ? "bg-live/20 text-live hover:bg-live/30"
+                      : "border border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <Video className="size-3.5" />
+                  {videoCallOn ? "Stop video" : "Video call"}
+                </button>
+              )}
               {isHost && room.is_active && (
                 <button
                   onClick={handleEndSession}
@@ -251,6 +269,14 @@ function RoomPage() {
               )}
             </div>
           </div>
+
+          {videoCallOn && me && room.is_active && (
+            <VideoCall
+              roomId={room.id}
+              userId={me}
+              onLeave={() => setVideoCallOn(false)}
+            />
+          )}
 
           <div className="rounded-3xl border border-white/5 bg-black/60 p-3 shadow-panel">
             {room.current_video_id ? (
