@@ -3,7 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
-import { endRoom, updateRoomPlayback } from "@/lib/rooms.functions";
+import { QueueRail } from "@/components/QueueRail";
+import { VideoCall } from "@/components/VideoCall";
+import { endRoom, playNextFromQueue, updateRoomPlayback } from "@/lib/rooms.functions";
 import { searchYouTube, type YtSearchResult } from "@/lib/youtube.functions";
 import { toast } from "sonner";
 import {
@@ -13,9 +15,11 @@ import {
   MessageCircle,
   Music,
   PowerOff,
+  Radio,
   Search,
   Send,
   Users,
+  Video,
 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDistanceToNow } from "date-fns";
