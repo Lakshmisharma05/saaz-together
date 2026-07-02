@@ -167,6 +167,15 @@ function RoomPage() {
     [room],
   );
 
+  const handleTrackEnded = useCallback(async () => {
+    if (!room) return;
+    if (room.mode === "jam" && room.is_active) {
+      try {
+        await playNextFromQueue({ data: { room_id: room.id } });
+      } catch {}
+    }
+  }, [room]);
+
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
