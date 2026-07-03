@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
 import { QueueRail } from "@/components/QueueRail";
 import { VideoCall } from "@/components/VideoCall";
+import { ThemedBackground } from "@/components/ThemedBackground";
 import { endRoom, playNextFromQueue, updateRoomPlayback } from "@/lib/rooms.functions";
 import { searchYouTube, type YtSearchResult } from "@/lib/youtube.functions";
 import { toast } from "sonner";
@@ -223,6 +224,7 @@ function RoomPage() {
 
   return (
     <AppShell>
+      <ThemedBackground thumbnail={room.current_video_thumbnail} />
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[1fr_360px]">
         {/* Left: player + search */}
         <div className="min-w-0 space-y-4">
