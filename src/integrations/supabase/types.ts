@@ -205,6 +205,7 @@ export type Database = {
       }
       room_participants: {
         Row: {
+          display_name: string | null
           id: string
           joined_at: string
           last_seen_at: string
@@ -212,6 +213,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          display_name?: string | null
           id?: string
           joined_at?: string
           last_seen_at?: string
@@ -219,6 +221,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          display_name?: string | null
           id?: string
           joined_at?: string
           last_seen_at?: string

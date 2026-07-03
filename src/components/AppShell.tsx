@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="grid size-8 place-items-center rounded-lg bg-brand font-display text-base font-bold italic text-brand-foreground shadow-brand-glow">
               T
             </div>
-            <span className="font-display text-xl font-bold tracking-tight">Tuneshare</span>
+            <span className="font-display text-xl font-bold tracking-tight">Saaz</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             <Link

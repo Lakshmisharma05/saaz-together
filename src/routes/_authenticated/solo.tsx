@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
+import { ThemedBackground } from "@/components/ThemedBackground";
 import { searchYouTube, type YtSearchResult } from "@/lib/youtube.functions";
 import { logSoloPlay } from "@/lib/rooms.functions";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +87,7 @@ function SoloPage() {
 
   return (
     <AppShell>
+      <ThemedBackground thumbnail={current?.thumbnail ?? null} />
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-4">
           <div className="flex items-center justify-between">

@@ -1,0 +1,1 @@
+ALTER TABLE public.room_participants ADD COLUMN IF NOT EXISTS display_name text;

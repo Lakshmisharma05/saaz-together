@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { YouTubePlayer } from "@/components/YouTubePlayer";
 import { QueueRail } from "@/components/QueueRail";
 import { VideoCall } from "@/components/VideoCall";
+import { ThemedBackground } from "@/components/ThemedBackground";
 import { endRoom, playNextFromQueue, updateRoomPlayback } from "@/lib/rooms.functions";
 import { searchYouTube, type YtSearchResult } from "@/lib/youtube.functions";
 import { toast } from "sonner";
@@ -223,6 +224,7 @@ function RoomPage() {
 
   return (
     <AppShell>
+      <ThemedBackground thumbnail={room.current_video_thumbnail} />
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[1fr_360px]">
         {/* Left: player + search */}
         <div className="min-w-0 space-y-4">
@@ -409,6 +411,7 @@ function RoomPage() {
             <div className="flex flex-wrap gap-2">
               {participants.map((p) => {
                 const prof = profiles[p.user_id];
+                const name = p.display_name || prof?.display_name || "Listener";
                 return (
                   <div
                     key={p.id}
@@ -422,10 +425,15 @@ function RoomPage() {
                       />
                     ) : (
                       <span className="grid size-6 place-items-center rounded-full bg-brand text-[10px] font-semibold text-brand-foreground">
-                        {(prof?.display_name ?? "?").charAt(0).toUpperCase()}
+                        {name.charAt(0).toUpperCase()}
                       </span>
                     )}
-                    <span className="text-xs">{prof?.display_name ?? "Listener"}</span>
+                    <span className="text-xs">
+                      {name}
+                      {p.display_name && prof?.display_name && p.display_name !== prof.display_name && (
+                        <span className="ml-1 text-muted-foreground">· {prof.display_name}</span>
+                      )}
+                    </span>
                   </div>
                 );
               })}

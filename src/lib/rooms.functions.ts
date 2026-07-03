@@ -12,10 +12,13 @@ const trackSchema = z.object({
 /** Create a new listening room owned by the caller and add them as participant. */
 export const createRoom = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { name?: string; mode?: "listen" | "jam" }) => ({
-    name: input?.name?.slice(0, 80),
-    mode: input?.mode === "jam" ? "jam" : "listen",
-  }))
+  .inputValidator(
+    (input: { name?: string; mode?: "listen" | "jam"; display_name?: string }) => ({
+      name: input?.name?.trim().slice(0, 80),
+      mode: input?.mode === "jam" ? "jam" : "listen",
+      display_name: input?.display_name?.trim().slice(0, 40) || undefined,
+    }),
+  )
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -46,7 +49,7 @@ export const createRoom = createServerFn({ method: "POST" })
 
     await supabaseAdmin
       .from("room_participants")
-      .insert({ room_id: room.id, user_id: context.userId });
+      .insert({ room_id: room.id, user_id: context.userId, display_name: data.display_name ?? null });
 
     return { room };
   });
@@ -54,7 +57,10 @@ export const createRoom = createServerFn({ method: "POST" })
 /** Join a room by invite code. Also records mutual friendship + adds system chat message. */
 export const joinRoomByCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { code: string }) => ({ code: input.code.trim().toUpperCase().slice(0, 12) }))
+  .inputValidator((input: { code: string; display_name?: string }) => ({
+    code: input.code.trim().toUpperCase().slice(0, 12),
+    display_name: input.display_name?.trim().slice(0, 40) || undefined,
+  }))
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: room, error } = await supabaseAdmin
@@ -76,19 +82,29 @@ export const joinRoomByCode = createServerFn({ method: "POST" })
     if (!existing) {
       await supabaseAdmin
         .from("room_participants")
-        .insert({ room_id: room.id, user_id: context.userId });
+        .insert({
+          room_id: room.id,
+          user_id: context.userId,
+          display_name: data.display_name ?? null,
+        });
 
       const { data: prof } = await supabaseAdmin
         .from("profiles")
         .select("display_name")
         .eq("id", context.userId)
         .maybeSingle();
+      const shown = data.display_name || prof?.display_name || "A listener";
       await supabaseAdmin.from("chat_messages").insert({
         room_id: room.id,
         user_id: null,
-        content: `${prof?.display_name ?? "A listener"} joined the session`,
+        content: `${shown} joined the session`,
         kind: "system",
       });
+    } else if (data.display_name) {
+      await supabaseAdmin
+        .from("room_participants")
+        .update({ display_name: data.display_name })
+        .eq("id", existing.id);
     }
 
     const { data: others } = await supabaseAdmin
