@@ -87,29 +87,49 @@ function Dashboard() {
     load();
   }, []);
 
-  async function handleCreate(mode: "listen" | "jam") {
-    setCreating(mode);
+  function openCreate(mode: "listen" | "jam") {
+    setCreateForm({
+      mode,
+      name: mode === "jam" ? "Jam Room" : "Listening Room",
+      username: "",
+    });
+  }
+
+  async function submitCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!createForm) return;
+    setCreating(true);
     try {
       const { room } = await createRoom({
-        data: { name: mode === "jam" ? "Jam Session" : "Listening Session", mode },
+        data: {
+          name: createForm.name,
+          mode: createForm.mode,
+          display_name: createForm.username || undefined,
+        },
       });
-      toast.success(mode === "jam" ? "Jam started" : "Session started");
+      toast.success(createForm.mode === "jam" ? "Jam room ready" : "Room ready");
+      setCreateForm(null);
       navigate({ to: "/room/$roomId", params: { roomId: room.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create");
     } finally {
-      setCreating(null);
+      setCreating(false);
     }
   }
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     if (!joinCode.trim()) return;
+    setJoining(true);
     try {
-      const { room } = await joinRoomByCode({ data: { code: joinCode } });
+      const { room } = await joinRoomByCode({
+        data: { code: joinCode, display_name: joinName || undefined },
+      });
       navigate({ to: "/room/$roomId", params: { roomId: room.id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid code");
+    } finally {
+      setJoining(false);
     }
   }
 
@@ -128,33 +148,31 @@ function Dashboard() {
             <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-brand-glow">
               Listen together
             </div>
-            <h2 className="font-display text-xl font-bold">Sync with a friend</h2>
+            <h2 className="font-display text-xl font-bold">Create a listening room</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              You pick the tracks — everyone hears the same beat.
+              Name your room, pick a username, share the code — you pick the tracks.
             </p>
             <button
-              onClick={() => handleCreate("listen")}
-              disabled={creating !== null}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-brand-glow transition-transform hover:scale-105 disabled:opacity-60"
+              onClick={() => openCreate("listen")}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-brand-glow transition-transform hover:scale-105"
             >
-              {creating === "listen" ? <Loader2 className="size-4 animate-spin" /> : <Headphones className="size-4" />}
-              New session
+              <Headphones className="size-4" />
+              New room
             </button>
           </div>
           <div className="rounded-3xl border border-white/10 bg-linear-to-br from-hot/25 via-hot/10 to-transparent p-6">
             <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-hot">
-              Jam session
+              Jam room
             </div>
             <h2 className="font-display text-xl font-bold">Build a queue together</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Everyone adds songs to a shared up-next list. Take turns as DJ.
             </p>
             <button
-              onClick={() => handleCreate("jam")}
-              disabled={creating !== null}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-hot px-4 py-2.5 text-sm font-semibold text-white shadow-panel transition-transform hover:scale-105 disabled:opacity-60"
+              onClick={() => openCreate("jam")}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-hot px-4 py-2.5 text-sm font-semibold text-white shadow-panel transition-transform hover:scale-105"
             >
-              {creating === "jam" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              <Sparkles className="size-4" />
               Start a jam
             </button>
           </div>
@@ -177,24 +195,111 @@ function Dashboard() {
         </div>
 
         <div className="mt-4 rounded-3xl border border-white/10 bg-surface/60 p-4">
-          <form onSubmit={handleJoin} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Got an invite code?
+          <form onSubmit={handleJoin} className="flex flex-col gap-2 md:flex-row md:items-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground md:w-40">
+              Got an entry code?
             </span>
-            <div className="flex flex-1 gap-2">
+            <div className="flex flex-1 flex-col gap-2 sm:flex-row">
               <input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="e.g. K7QRZ2AB"
+                placeholder="ENTRY CODE"
                 maxLength={12}
                 className="flex-1 rounded-full border border-white/10 bg-background/60 px-4 py-2 font-mono text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground focus:border-brand"
               />
-              <button className="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20">
-                Join
+              <input
+                value={joinName}
+                onChange={(e) => setJoinName(e.target.value.slice(0, 40))}
+                placeholder="Your username in this room (optional)"
+                className="flex-1 rounded-full border border-white/10 bg-background/60 px-4 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-brand"
+              />
+              <button
+                disabled={joining}
+                className="rounded-full bg-white/10 px-5 py-2 text-sm font-semibold hover:bg-white/20 disabled:opacity-60"
+              >
+                {joining ? <Loader2 className="size-4 animate-spin" /> : "Join"}
               </button>
             </div>
           </form>
         </div>
+
+        {/* Create-room modal */}
+        {createForm && (
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-sm"
+            onClick={() => !creating && setCreateForm(null)}
+          >
+            <form
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={submitCreate}
+              className="w-full max-w-md rounded-3xl border border-white/10 bg-surface p-6 shadow-panel"
+            >
+              <div
+                className={`mb-1 text-xs font-semibold uppercase tracking-widest ${
+                  createForm.mode === "jam" ? "text-hot" : "text-brand-glow"
+                }`}
+              >
+                {createForm.mode === "jam" ? "New jam room" : "New listening room"}
+              </div>
+              <h3 className="font-display text-xl font-bold">Set up your room</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pick a room name and the username your friends will see.
+              </p>
+
+              <label className="mt-5 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Room name
+              </label>
+              <input
+                autoFocus
+                value={createForm.name}
+                onChange={(e) => setCreateForm({ ...createForm, name: e.target.value.slice(0, 80) })}
+                placeholder="Sunday night vibes"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-background/60 px-4 py-2.5 text-sm outline-none focus:border-brand"
+              />
+
+              <label className="mt-4 block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Your username in this room
+              </label>
+              <input
+                value={createForm.username}
+                onChange={(e) =>
+                  setCreateForm({ ...createForm, username: e.target.value.slice(0, 40) })
+                }
+                placeholder="DJ Nova (optional)"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-background/60 px-4 py-2.5 text-sm outline-none focus:border-brand"
+              />
+
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCreateForm(null)}
+                  disabled={creating}
+                  className="rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating || !createForm.name.trim()}
+                  className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-60 ${
+                    createForm.mode === "jam"
+                      ? "bg-hot text-white shadow-panel"
+                      : "bg-brand text-brand-foreground shadow-brand-glow"
+                  }`}
+                >
+                  {creating ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : createForm.mode === "jam" ? (
+                    <Sparkles className="size-4" />
+                  ) : (
+                    <Headphones className="size-4" />
+                  )}
+                  Create room
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Sessions */}
         <section className="mt-10">
