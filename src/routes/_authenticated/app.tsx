@@ -16,14 +16,19 @@ export const Route = createFileRoute("/_authenticated/app")({
   component: Dashboard,
 });
 
+type CreateForm = { mode: "listen" | "jam"; name: string; username: string };
+
 function Dashboard() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState<null | "listen" | "jam">(null);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateForm | null>(null);
+  const [joining, setJoining] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [joinName, setJoinName] = useState("");
   const [editingFriend, setEditingFriend] = useState<string | null>(null);
   const [nickDraft, setNickDraft] = useState("");
 
