@@ -411,6 +411,7 @@ function RoomPage() {
             <div className="flex flex-wrap gap-2">
               {participants.map((p) => {
                 const prof = profiles[p.user_id];
+                const name = p.display_name || prof?.display_name || "Listener";
                 return (
                   <div
                     key={p.id}
@@ -424,10 +425,15 @@ function RoomPage() {
                       />
                     ) : (
                       <span className="grid size-6 place-items-center rounded-full bg-brand text-[10px] font-semibold text-brand-foreground">
-                        {(prof?.display_name ?? "?").charAt(0).toUpperCase()}
+                        {name.charAt(0).toUpperCase()}
                       </span>
                     )}
-                    <span className="text-xs">{prof?.display_name ?? "Listener"}</span>
+                    <span className="text-xs">
+                      {name}
+                      {p.display_name && prof?.display_name && p.display_name !== prof.display_name && (
+                        <span className="ml-1 text-muted-foreground">· {prof.display_name}</span>
+                      )}
+                    </span>
                   </div>
                 );
               })}
