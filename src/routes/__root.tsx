@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Tuneshare — Listen to music together" },
+      { title: "Saaz — Listen to music together" },
       {
         name: "description",
         content:
-          "Tuneshare lets you and your friends listen to music together in real time. Share an invite link, chat while you listen, and keep every song and message forever.",
+          "Saaz lets you and your friends listen to music together in real time. Share an invite link, chat while you listen, and keep every song and message forever.",
       },
-      { name: "author", content: "Tuneshare" },
-      { property: "og:title", content: "Tuneshare — Listen to music together" },
+      { name: "author", content: "Saaz" },
+      { property: "og:title", content: "Saaz — Listen to music together" },
       {
         property: "og:description",
         content:

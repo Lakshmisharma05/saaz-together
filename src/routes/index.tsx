@@ -19,7 +19,7 @@ function Landing() {
           <div className="grid size-9 place-items-center rounded-xl bg-brand font-display text-lg font-bold italic text-brand-foreground shadow-brand-glow">
             T
           </div>
-          <span className="font-display text-xl font-bold tracking-tight">Tuneshare</span>
+          <span className="font-display text-xl font-bold tracking-tight">Saaz</span>
         </div>
         <div className="flex items-center gap-3">
           <Link

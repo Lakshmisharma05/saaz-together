@@ -94,7 +94,7 @@ function AuthPage() {
           </div>
           <div>
             <h1 className="font-display text-xl font-bold">
-              {mode === "signup" ? "Join Tuneshare" : "Welcome back"}
+              {mode === "signup" ? "Join Saaz" : "Welcome back"}
             </h1>
             <p className="text-xs text-muted-foreground">
               {mode === "signup" ? "Start listening together." : "Sign in to keep the session going."}
@@ -158,7 +158,7 @@ function AuthPage() {
         </form>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          {mode === "signup" ? "Already have an account? " : "New to Tuneshare? "}
+          {mode === "signup" ? "Already have an account? " : "New to Saaz? "}
           <button
             type="button"
             onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
