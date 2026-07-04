@@ -41,23 +41,7 @@ Built with **React, TypeScript, Tailwind CSS, and Lovable AI**, it delivers a fa
     <img src="https://img.shields.io/badge/🎵_Try_Saaz_Live-4CAF50?style=for-the-badge" alt="Live Demo">
   </a>
 </p>
-///### Home Page
 
-<img src="screenshots/home.png" width="100%">
-
----
-
-### Music Player
-
-<img src="screenshots/player.png" width="100%">
-
----
-
-### Search
-
-<img src="screenshots/search.png" width="100%">
-
----///
 
 ## 🌟 Features
 
