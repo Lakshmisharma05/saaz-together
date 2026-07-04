@@ -22,11 +22,15 @@ export const createRoom = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const genCode = () => {
+      let c = "";
+      for (let i = 0; i < 8; i++) c += chars[Math.floor(Math.random() * chars.length)];
+      return c;
+    };
     let inviteCode = "";
     for (let i = 0; i < 5; i++) {
-      const { data: codeRow, error: codeErr } = await supabaseAdmin.rpc("gen_invite_code");
-      if (codeErr) throw new Error(codeErr.message);
-      inviteCode = codeRow as unknown as string;
+      inviteCode = genCode();
       const { data: existing } = await supabaseAdmin
         .from("rooms")
         .select("id")
