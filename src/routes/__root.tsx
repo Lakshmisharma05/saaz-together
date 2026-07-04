@@ -94,6 +94,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Saaz — Listen to music together" },
+      { name: "description", content: "Saaz lets you and your friends listen to music together in real time. Share an invite link, chat while you listen, and keep every song and message forever." },
+      { property: "og:description", content: "Saaz lets you and your friends listen to music together in real time. Share an invite link, chat while you listen, and keep every song and message forever." },
+      { name: "twitter:description", content: "Saaz lets you and your friends listen to music together in real time. Share an invite link, chat while you listen, and keep every song and message forever." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bdca539c-b779-492d-9e31-7ebedfee9795" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/bdca539c-b779-492d-9e31-7ebedfee9795" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
