@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Headphones, Link2, MessageCircle, History } from "lucide-react";
+import saazLogo from "@/assets/saaz-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Landing,

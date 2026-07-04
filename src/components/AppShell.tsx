@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Headphones, Library, LogOut, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import saazLogo from "@/assets/saaz-logo.png.asset.json";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState<string>("");
