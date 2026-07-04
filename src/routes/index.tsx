@@ -17,9 +17,11 @@ function Landing() {
 
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/5 bg-background/70 px-6 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-xl bg-brand font-display text-lg font-bold italic text-brand-foreground shadow-brand-glow">
-            T
-          </div>
+          <img
+            src={saazLogo.url}
+            alt="Saaz"
+            className="size-9 rounded-xl border border-white/10 bg-[#F5F0E6] object-contain shadow-brand-glow"
+          />
           <span className="font-display text-xl font-bold tracking-tight">Saaz</span>
         </div>
         <div className="flex items-center gap-3">
