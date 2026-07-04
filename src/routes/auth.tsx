@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 import { Loader2, Music } from "lucide-react";
+import saazLogo from "@/assets/saaz-logo.png.asset.json";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -89,9 +90,11 @@ function AuthPage() {
 
       <div className="w-full max-w-md rounded-3xl border border-white/5 bg-surface/70 p-8 shadow-panel backdrop-blur-md">
         <div className="mb-6 flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-xl bg-brand font-display text-lg font-bold italic text-brand-foreground shadow-brand-glow">
-            T
-          </div>
+          <img
+            src={saazLogo.url}
+            alt="Saaz"
+            className="size-10 rounded-xl border border-white/10 bg-[#F5F0E6] object-contain shadow-brand-glow"
+          />
           <div>
             <h1 className="font-display text-xl font-bold">
               {mode === "signup" ? "Join Saaz" : "Welcome back"}

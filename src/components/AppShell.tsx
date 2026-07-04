@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Headphones, Library, LogOut, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import saazLogo from "@/assets/saaz-logo.png.asset.json";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState<string>("");
@@ -40,9 +41,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/5 bg-background/70 px-6 backdrop-blur-md">
         <div className="flex items-center gap-6">
           <Link to="/app" className="flex items-center gap-3">
-            <div className="grid size-8 place-items-center rounded-lg bg-brand font-display text-base font-bold italic text-brand-foreground shadow-brand-glow">
-              T
-            </div>
+            <img
+              src={saazLogo.url}
+              alt="Saaz"
+              className="size-8 rounded-lg border border-white/10 bg-[#F5F0E6] object-contain shadow-brand-glow"
+            />
             <span className="font-display text-xl font-bold tracking-tight">Saaz</span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
