@@ -51,7 +51,7 @@ Built with **React, TypeScript, Tailwind CSS, and Lovable AI**, it delivers a fa
 - 💬 **Live Chat** – Chat with friends while listening together.
 - 🚀 **Instant Room Sharing** – Invite others and start jamming instantly.
 - 📱 **Responsive Design** – Optimized for desktop, tablet, and mobile.
-- ⚡ 🎨 Modern & Intuitive UI* – Built with React, TypeScript, Tailwind CSS, and Lovable AI.
+- ⚡ 🎨 Modern & Intuitive UI* – Built with React, TypeScript, Tailwind CSS.
 
 ---
 
